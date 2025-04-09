@@ -1,0 +1,122 @@
+// lib/services/ekyc_service.dart
+
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+
+class EKYCService {
+  static const String baseUrl = 'http://192.168.253.156:8000'; // Replace with your server IP if testing on a device
+
+  // Extract IC text
+  static Future<IcTextResult> extractICText(File icImage) async {
+    var uri = Uri.parse('$baseUrl/extract_ic_text/');
+    var request = http.MultipartRequest('POST', uri)
+      ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
+
+    var response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    final Map<String, dynamic> result = jsonDecode(responseBody);
+
+    if (result['success'] == true) {
+      return IcTextResult.fromJson(result['data']);
+    } else {
+      throw Exception(result['error'] ?? 'Failed to extract IC text');
+    }
+  }
+
+  // Verify selfie against IC image
+  static Future<FaceVerificationResult> verifyFace(File icImage, File selfieImage) async {
+    var uri = Uri.parse('$baseUrl/verify/');
+    var request = http.MultipartRequest('POST', uri)
+      ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path))
+      ..files.add(await http.MultipartFile.fromPath('selfie_image', selfieImage.path));
+
+    var response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    final Map<String, dynamic> result = jsonDecode(responseBody);
+
+    if (result['success'] == true) {
+      return FaceVerificationResult.fromJson(result['data']);
+    } else {
+      throw Exception(result['error'] ?? 'Face verification failed');
+    }
+  }
+
+  // Verify liveness using multiple selfie frames
+  static Future<LivenessVerificationResult> verifyLiveness(File icImage, List<File> selfieFrames) async {
+    var uri = Uri.parse('$baseUrl/verify_liveness/');
+    var request = http.MultipartRequest('POST', uri)
+      ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
+
+    for (var frame in selfieFrames) {
+      request.files.add(await http.MultipartFile.fromPath('selfie_images', frame.path));
+    }
+
+    var response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    final Map<String, dynamic> result = jsonDecode(responseBody);
+
+    if (result['success'] == true) {
+      return LivenessVerificationResult.fromJson(result['data']);
+    } else {
+      throw Exception(result['error'] ?? 'Liveness verification failed');
+    }
+  }
+}
+
+class IcTextResult {
+  final String icNumber;
+  final String name;
+  final String address;
+  final String rawText;
+
+  IcTextResult({required this.icNumber, required this.name, required this.address, required this.rawText});
+
+  factory IcTextResult.fromJson(Map<String, dynamic> json) {
+    return IcTextResult(
+      icNumber: json['ic_number'] ?? '',
+      name: json['name'] ?? '',
+      address: json['address'] ?? '',
+      rawText: json['raw_text'] ?? '',
+    );
+  }
+}
+
+class FaceVerificationResult {
+  final double similarity;
+  final bool match;
+  final Map<String, dynamic> savedFiles;
+
+  FaceVerificationResult({required this.similarity, required this.match, required this.savedFiles});
+
+  factory FaceVerificationResult.fromJson(Map<String, dynamic> json) {
+    return FaceVerificationResult(
+      similarity: (json['similarity'] as num).toDouble(),
+      match: json['match'],
+      savedFiles: json['saved_files'] ?? {},
+    );
+  }
+}
+
+class LivenessVerificationResult {
+  final double similarity;
+  final bool match;
+  final bool livenessPassed;
+  final int framesProcessed;
+
+  LivenessVerificationResult({
+    required this.similarity,
+    required this.match,
+    required this.livenessPassed,
+    required this.framesProcessed,
+  });
+
+  factory LivenessVerificationResult.fromJson(Map<String, dynamic> json) {
+    return LivenessVerificationResult(
+      similarity: (json['similarity'] as num).toDouble(),
+      match: json['match'],
+      livenessPassed: json['liveness_passed'],
+      framesProcessed: json['frames_processed'],
+    );
+  }
+}
