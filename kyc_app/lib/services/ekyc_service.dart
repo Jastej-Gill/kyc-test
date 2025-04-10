@@ -5,11 +5,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class EKYCService {
-  static const String baseUrl = 'http://192.168.253.156:8000'; // Replace with your server IP if testing on a device
+  static const String baseUrl = 'http://172.16.12.41:8000';
 
-  // Extract IC text
-  static Future<IcTextResult> extractICText(File icImage) async {
-    var uri = Uri.parse('$baseUrl/extract_ic_text/');
+  // Step 1: Verify IC structure and text
+  static Future<void> verifyICStructure(File icImage) async {
+    var uri = Uri.parse('$baseUrl/verify_ic_structure/');
     var request = http.MultipartRequest('POST', uri)
       ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
 
@@ -17,16 +17,31 @@ class EKYCService {
     final responseBody = await response.stream.bytesToString();
     final Map<String, dynamic> result = jsonDecode(responseBody);
 
-    if (result['success'] == true) {
-      return IcTextResult.fromJson(result['data']);
-    } else {
-      throw Exception(result['error'] ?? 'Failed to extract IC text');
+    if (result['success'] != true) {
+      throw Exception(result['message'] ?? 'IC structure verification failed');
     }
   }
 
-  // Verify selfie against IC image
-  static Future<FaceVerificationResult> verifyFace(File icImage, File selfieImage) async {
-    var uri = Uri.parse('$baseUrl/verify/');
+  // // Optional: Extract IC text (if needed for UI feedback)
+  // static Future<IcTextResult> extractICText(File icImage) async {
+  //   var uri = Uri.parse('$baseUrl/extract_ic_text/');
+  //   var request = http.MultipartRequest('POST', uri)
+  //     ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
+
+  //   var response = await request.send();
+  //   final responseBody = await response.stream.bytesToString();
+  //   final Map<String, dynamic> result = jsonDecode(responseBody);
+
+  //   if (result['success'] == true) {
+  //     return IcTextResult.fromJson(result['data']);
+  //   } else {
+  //     throw Exception(result['error'] ?? 'Failed to extract IC text');
+  //   }
+  // }
+
+  // Step 2: Verify face match
+  static Future<FaceVerificationResult> verifyFaceMatch(File icImage, File selfieImage) async {
+    var uri = Uri.parse('$baseUrl/verify_face_match/');
     var request = http.MultipartRequest('POST', uri)
       ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path))
       ..files.add(await http.MultipartFile.fromPath('selfie_image', selfieImage.path));
@@ -38,11 +53,11 @@ class EKYCService {
     if (result['success'] == true) {
       return FaceVerificationResult.fromJson(result['data']);
     } else {
-      throw Exception(result['error'] ?? 'Face verification failed');
+      throw Exception(result['error'] ?? 'Face match verification failed');
     }
   }
 
-  // Verify liveness using multiple selfie frames
+  // Step 3: Liveness check with selfie frames
   static Future<LivenessVerificationResult> verifyLiveness(File icImage, List<File> selfieFrames) async {
     var uri = Uri.parse('$baseUrl/verify_liveness/');
     var request = http.MultipartRequest('POST', uri)
@@ -63,6 +78,7 @@ class EKYCService {
     }
   }
 }
+
 
 class IcTextResult {
   final String icNumber;
