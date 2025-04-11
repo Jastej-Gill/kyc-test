@@ -1,16 +1,31 @@
-# kyc_app
+# Flutter eKYC Frontend
 
-A new Flutter project.
+This Flutter app allows users to complete an electronic Know Your Customer (eKYC) process by:
+- Uploading their MyKad (Malaysian ID)
+- Performing face verification and liveness check using the front camera
+- Receiving confirmation results (match + liveness)
 
-## Getting Started
+## 📱 Requirements
 
-This project is a starting point for a Flutter application.
+- Flutter 3.x installed
+- Android/iOS device (camera support required)
+- Backend server running (FastAPI — see backend readme)
 
-A few resources to get you started if this is your first Flutter project:
+## 🔧 Setup & Run
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## ⚠️ IMPORTANT: Configure API URL
+
+Before running the app, ensure the backend API URL is correctly set in:
+
+```dart
+lib/services/ekyc_service.dart
+
+Use http://10.0.2.2:8000 if testing on Android emulator
+
+Use your machine IP (e.g. 192.168.1.x) if testing on a real device
+
