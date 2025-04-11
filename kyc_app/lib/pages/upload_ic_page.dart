@@ -101,7 +101,18 @@ Future<void> _processIC(File file) async {
 
               const SizedBox(height: 20),
 
-              if (_error != null)
+              if (_error != null) ...[
+                // ✅ Safe logging outside widget tree
+                Builder(builder: (_) {
+                  final lowerError = _error!.toLowerCase();
+                  debugPrint('DEBUG: Error value = $_error');
+                  debugPrint('DEBUG: lowerError = $lowerError');
+                  debugPrint('DEBUG: Contains "structure"? ${lowerError.contains("structure")}');
+                  debugPrint('DEBUG: Contains "text"? ${lowerError.contains("text")}');
+                  return const SizedBox.shrink(); // Return dummy widget
+                }),
+
+                // ✅ Actual UI element
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
@@ -112,8 +123,8 @@ Future<void> _processIC(File file) async {
                     textAlign: TextAlign.center,
                   ),
                 ),
+              ],
 
-              const SizedBox(height: 20),
 
               // Buttons to upload or retake
               Row(
@@ -151,8 +162,8 @@ Future<void> _processIC(File file) async {
                 onPressed: (_idCardImage != null && !_isExtracting && _error == null)
                     ? () => Navigator.pushNamed(
                           context,
-                          '/verify_face',
-                          arguments: _idCardImage,
+                          '/liveness_check',
+                          arguments: _idCardImage, // 👈 pass IC image to liveness page
                         )
                     : null,
                 style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),

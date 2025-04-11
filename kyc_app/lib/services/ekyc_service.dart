@@ -39,27 +39,8 @@ class EKYCService {
   //   }
   // }
 
-  // Step 2: Verify face match
-  static Future<FaceVerificationResult> verifyFaceMatch(File icImage, File selfieImage) async {
-    var uri = Uri.parse('$baseUrl/verify_face_match/');
-    var request = http.MultipartRequest('POST', uri)
-      ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path))
-      ..files.add(await http.MultipartFile.fromPath('selfie_image', selfieImage.path));
-
-    var response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-    final Map<String, dynamic> result = jsonDecode(responseBody);
-
-    if (result['success'] == true) {
-      return FaceVerificationResult.fromJson(result['data']);
-    } else {
-      throw Exception(result['error'] ?? 'Face match verification failed');
-    }
-  }
-
-  // Step 3: Liveness check with selfie frames
-  static Future<LivenessVerificationResult> verifyLiveness(File icImage, List<File> selfieFrames) async {
-    var uri = Uri.parse('$baseUrl/verify_liveness/');
+  static Future<LivenessVerificationResult> verifyLivenessAndMatch(File icImage, List<File> selfieFrames) async {
+    var uri = Uri.parse('$baseUrl/verify_liveness_and_match/');
     var request = http.MultipartRequest('POST', uri)
       ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
 
@@ -74,7 +55,7 @@ class EKYCService {
     if (result['success'] == true) {
       return LivenessVerificationResult.fromJson(result['data']);
     } else {
-      throw Exception(result['error'] ?? 'Liveness verification failed');
+      throw Exception(result['error'] ?? 'Liveness and face match verification failed');
     }
   }
 }
