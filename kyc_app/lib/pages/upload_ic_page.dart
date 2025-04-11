@@ -102,7 +102,6 @@ Future<void> _processIC(File file) async {
               const SizedBox(height: 20),
 
               if (_error != null) ...[
-                // ✅ Safe logging outside widget tree
                 Builder(builder: (_) {
                   final lowerError = _error!.toLowerCase();
                   debugPrint('DEBUG: Error value = $_error');
@@ -112,7 +111,6 @@ Future<void> _processIC(File file) async {
                   return const SizedBox.shrink(); // Return dummy widget
                 }),
 
-                // ✅ Actual UI element
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(

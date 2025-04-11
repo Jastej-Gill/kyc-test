@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 class EKYCService {
   static const String baseUrl = 'http://172.16.12.41:8000';
 
-  // Step 1: Verify IC structure and text
   static Future<void> verifyICStructure(File icImage) async {
     var uri = Uri.parse('$baseUrl/verify_ic_structure/');
     var request = http.MultipartRequest('POST', uri)

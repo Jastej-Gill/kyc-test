@@ -142,7 +142,6 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
 
                 return Stack(
                   children: [
-                    // 🔦 Flash overlay
                     if (_flashController != null)
                       FadeTransition(
                         opacity: Tween(begin: 0.0, end: 0.8).animate(
@@ -150,7 +149,6 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
                         ),
                         child: Container(color: Colors.white),
                       ),
-                    // ✅ Camera Preview
                     Center(
                       child: OverflowBox(
                         maxWidth: screenSize.height * aspectRatio,
@@ -159,7 +157,6 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
                       ),
                     ),
 
-                    // 🟢 Face Frame
                     Center(
                       child: Container(
                         width: frameWidth,
@@ -171,7 +168,6 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
                       ),
                     ),
 
-                    // 📢 Instruction (top)
                     Positioned(
                       top: 40,
                       left: 0,
@@ -191,7 +187,6 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
                       ),
                     ),
 
-                    // 🔄 Status and Button (bottom)
                     Positioned(
                       bottom: 40,
                       left: 0,

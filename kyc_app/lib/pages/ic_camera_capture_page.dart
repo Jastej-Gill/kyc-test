@@ -112,7 +112,6 @@ Widget build(BuildContext context) {
 
               return Stack(
                 children: [
-                  // ✅ Camera Preview (OverflowBox maintains proper scale)
                   Center(
                     child: OverflowBox(
                       maxWidth: previewWidth,
@@ -121,7 +120,6 @@ Widget build(BuildContext context) {
                     ),
                   ),
 
-                  // 🟩 Framing Guide
                   Center(
                     child: Container(
                       width: frameWidth,
@@ -133,7 +131,6 @@ Widget build(BuildContext context) {
                     ),
                   ),
 
-                  // 📷 Capture Button
                   Positioned(
                     bottom: 40,
                     left: 0,
@@ -147,7 +144,6 @@ Widget build(BuildContext context) {
                     ),
                   ),
 
-                  // 📢 Instruction
                   Positioned(
                     top: 40,
                     left: 0,
