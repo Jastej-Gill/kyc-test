@@ -165,7 +165,7 @@ Widget build(BuildContext context) {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
-                          "Align your MyKad inside the frame",
+                          "Align your ID inside the frame",
                           style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       ),

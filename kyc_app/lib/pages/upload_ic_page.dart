@@ -60,7 +60,7 @@ Future<void> _processIC(File file) async {
     final double frameHeight = frameWidth / 1.6; // 16:10 ratio
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload MyKad')),
+      appBar: AppBar(title: const Text('Upload ID')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -68,7 +68,7 @@ Future<void> _processIC(File file) async {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Step 1: Upload your MyKad',
+                'Step 1: Upload your ID',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
