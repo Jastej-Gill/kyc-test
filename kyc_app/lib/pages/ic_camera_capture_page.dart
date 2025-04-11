@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as Path;
 import 'package:path_provider/path_provider.dart'; 
 import 'package:image/image.dart' as img;
@@ -22,6 +23,7 @@ class _ICCameraCapturePageState extends State<ICCameraCapturePage> {
   void initState() {
     super.initState();
     _initCamera();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
 
   Future<void> _initCamera() async {
@@ -85,7 +87,14 @@ class _ICCameraCapturePageState extends State<ICCameraCapturePage> {
   @override
   void dispose() {
     controller?.dispose();
-    super.dispose();
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    super.dispose();  
   }
 
 @override

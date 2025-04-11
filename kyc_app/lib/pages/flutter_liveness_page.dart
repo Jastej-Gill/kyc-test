@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
 import '../services/ekyc_service.dart';
+import 'package:flutter/services.dart';
+
 
 class LivenessCapturePage extends StatefulWidget {
   const LivenessCapturePage({super.key});
@@ -30,6 +32,9 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
   }
 
   Future<void> _setup() async {
@@ -124,6 +129,7 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
   @override
   void dispose() {
     _flashController?.dispose();
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     controller?.dispose();
     super.dispose();
   }
