@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/ekyc_service.dart';
+import '../utils/frame_dimensions.dart';
 
 class UploadICPage extends StatefulWidget {
   const UploadICPage({super.key});
@@ -24,40 +25,39 @@ class _UploadICPageState extends State<UploadICPage> {
     }
   }
 
-Future<void> _processIC(File file) async {
-  setState(() {
-    _idCardImage = file;
-    _error = null;
-    _isExtracting = true;
-  });
-
-  try {
-    await EKYCService.verifyICStructure(file);
-  } catch (e) {
-    final errorMessage = e.toString().toLowerCase();
-    final shouldReset = errorMessage.contains("no face") ||
-        errorMessage.contains("small face") ||
-        errorMessage.contains("structure") ||
-        errorMessage.contains("valid text");
-
-    if (shouldReset) {
-      setState(() {
-        _idCardImage = null;
-      });
-    }
-
+  Future<void> _processIC(File file) async {
     setState(() {
-      _error = e.toString();
+      _idCardImage = file;
+      _error = null;
+      _isExtracting = true;
     });
-  } finally {
-    setState(() => _isExtracting = false);
+
+    try {
+      await EKYCService.verifyICStructure(file);
+    } catch (e) {
+      final errorMessage = e.toString().toLowerCase();
+      final shouldReset = errorMessage.contains("no face") ||
+          errorMessage.contains("small face") ||
+          errorMessage.contains("structure") ||
+          errorMessage.contains("valid text");
+
+      if (shouldReset) {
+        setState(() {
+          _idCardImage = null;
+        });
+      }
+
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() => _isExtracting = false);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
-    final double frameWidth = MediaQuery.of(context).size.width * 0.85;
-    final double frameHeight = frameWidth / 1.6; // 16:10 ratio
+    final Size frameSize = getIDFrameSize(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Upload ID')),
@@ -73,44 +73,58 @@ Future<void> _processIC(File file) async {
               ),
               const SizedBox(height: 20),
 
-              // IC preview frame
-              Container(
-                width: frameWidth,
-                height: frameHeight,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blueAccent),
-                ),
+              // ID Preview Stack
+              Stack(
                 alignment: Alignment.center,
-                child: _idCardImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          _idCardImage!,
-                          fit: BoxFit.cover,
-                          width: frameWidth,
-                          height: frameHeight,
-                        ),
-                      )
-                    : const Text(
-                        'No IC uploaded',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                children: [
+                  Container(
+                    width: frameSize.width,
+                    height: frameSize.height,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _idCardImage != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: frameSize.width,
+                                height: frameSize.height,
+                                child: Image.file(
+                                  _idCardImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          )
+                        : const Center(
+                            child: Text('No IC uploaded', style: TextStyle(color: Colors.grey)),
+                          ),
+                  ),
+                  Container(
+                    width: frameSize.width,
+                    height: frameSize.height,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white60, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -28,
+                    child: Text(
+                      "Captured Area",
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  ),
+                ],
               ),
+
 
               const SizedBox(height: 20),
 
               if (_error != null) ...[
-                Builder(builder: (_) {
-                  final lowerError = _error!.toLowerCase();
-                  debugPrint('DEBUG: Error value = $_error');
-                  debugPrint('DEBUG: lowerError = $lowerError');
-                  debugPrint('DEBUG: Contains "structure"? ${lowerError.contains("structure")}');
-                  debugPrint('DEBUG: Contains "text"? ${lowerError.contains("text")}');
-                  return const SizedBox.shrink(); // Return dummy widget
-                }),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
@@ -123,8 +137,6 @@ Future<void> _processIC(File file) async {
                 ),
               ],
 
-
-              // Buttons to upload or retake
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -155,13 +167,12 @@ Future<void> _processIC(File file) async {
 
               const SizedBox(height: 40),
 
-              // Next step
               ElevatedButton(
                 onPressed: (_idCardImage != null && !_isExtracting && _error == null)
                     ? () => Navigator.pushNamed(
                           context,
                           '/liveness_check',
-                          arguments: _idCardImage, // 👈 pass IC image to liveness page
+                          arguments: _idCardImage,
                         )
                     : null,
                 style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
@@ -173,10 +184,7 @@ Future<void> _processIC(File file) async {
                           SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           ),
                           SizedBox(width: 12),
                           Text("Verifying..."),

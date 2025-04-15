@@ -5,7 +5,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class EKYCService {
-  static const String baseUrl = 'http://172.16.12.41:8000';
+  // static const String baseUrl = 'http://172.16.100.188:8000';
+  static const String baseUrl = 'http://172.16.20.196:8000';
 
   static Future<void> verifyICStructure(File icImage) async {
     var uri = Uri.parse('$baseUrl/verify_ic_structure/');

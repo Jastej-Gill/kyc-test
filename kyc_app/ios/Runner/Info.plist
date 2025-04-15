@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to capture your ID</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to upload an ID</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app may access microphone for future features like liveness detection</string>
 </dict>
 </plist>
