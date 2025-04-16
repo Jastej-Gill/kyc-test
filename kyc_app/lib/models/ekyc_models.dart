@@ -21,46 +21,41 @@ class IcTextResult {
     );
   }
 }
-
-class FaceVerificationResult {
-  final double similarity;
-  final bool match;
-  final Map<String, dynamic> savedFiles;
-
-  FaceVerificationResult({
-    required this.similarity,
-    required this.match,
-    required this.savedFiles,
-  });
-
-  factory FaceVerificationResult.fromJson(Map<String, dynamic> json) {
-    return FaceVerificationResult(
-      similarity: (json['similarity'] as num).toDouble(),
-      match: json['match'],
-      savedFiles: json['saved_files'] ?? {},
-    );
-  }
-}
-
 class LivenessVerificationResult {
-  final double similarity;
+  final bool success;
   final bool match;
   final bool livenessPassed;
+  final double similarity;
   final int framesProcessed;
+  final String? error;
 
   LivenessVerificationResult({
-    required this.similarity,
+    required this.success,
     required this.match,
     required this.livenessPassed,
+    required this.similarity,
     required this.framesProcessed,
+    this.error,
   });
 
   factory LivenessVerificationResult.fromJson(Map<String, dynamic> json) {
     return LivenessVerificationResult(
-      similarity: (json['similarity'] as num).toDouble(),
-      match: json['match'],
-      livenessPassed: json['liveness_passed'],
-      framesProcessed: json['frames_processed'],
+      success: true,
+      match: json['match'] ?? false,
+      livenessPassed: json['liveness_passed'] ?? false,
+      similarity: (json['similarity'] ?? 0).toDouble(),
+      framesProcessed: json['frames_processed'] ?? 0,
+    );
+  }
+
+  factory LivenessVerificationResult.failure(String? errorMessage) {
+    return LivenessVerificationResult(
+      success: false,
+      match: false,
+      livenessPassed: false,
+      similarity: 0.0,
+      framesProcessed: 0,
+      error: errorMessage,
     );
   }
 }

@@ -86,7 +86,9 @@ class _LivenessCapturePageState extends State<LivenessCapturePage> with SingleTi
       final result = await EKYCService.verifyLivenessAndMatch(icImage!, frames);
 
       if (!mounted) return;
-      Navigator.pushNamed(context, '/confirmation', arguments: result.match && result.livenessPassed);
+
+      Navigator.pushNamed(context, '/confirmation', arguments: result);
+
     } catch (e) {
       _showRetryDialog("Liveness check failed: $e");
     } finally {

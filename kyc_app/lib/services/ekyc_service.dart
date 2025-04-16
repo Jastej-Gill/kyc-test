@@ -3,24 +3,28 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../models/ekyc_models.dart'; 
 
 class EKYCService {
-  // static const String baseUrl = 'http://172.16.100.188:8000';
-  static const String baseUrl = 'http://172.16.20.196:8000';
+  static const String baseUrl = 'http://172.16.100.188:8010';
+  
+  // static const String baseUrl = 'http://192.168.136.240:8000';
 
-  static Future<void> verifyICStructure(File icImage) async {
-    var uri = Uri.parse('$baseUrl/verify_ic_structure/');
-    var request = http.MultipartRequest('POST', uri)
-      ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
+static Future<Map<String, dynamic>> verifyICStructure(File icImage) async {
+  final uri = Uri.parse('$baseUrl/verify_ic_structure/');
+  final request = http.MultipartRequest('POST', uri)
+    ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
 
-    var response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-    final Map<String, dynamic> result = jsonDecode(responseBody);
+  final response = await request.send();
+  final responseBody = await response.stream.bytesToString();
+  final Map<String, dynamic> result = jsonDecode(responseBody);
 
-    if (result['success'] != true) {
-      throw Exception(result['message'] ?? 'IC structure verification failed');
-    }
+  if (result['success'] != true) {
+    throw Exception(result['message'] ?? 'IC structure verification failed');
   }
+
+  return result; 
+}
 
   // // Optional: Extract IC text (if needed for UI feedback)
   // static Future<IcTextResult> extractICText(File icImage) async {
@@ -39,7 +43,8 @@ class EKYCService {
   //   }
   // }
 
-  static Future<LivenessVerificationResult> verifyLivenessAndMatch(File icImage, List<File> selfieFrames) async {
+static Future<LivenessVerificationResult> verifyLivenessAndMatch(File icImage, List<File> selfieFrames) async {
+  try {
     var uri = Uri.parse('$baseUrl/verify_liveness_and_match/');
     var request = http.MultipartRequest('POST', uri)
       ..files.add(await http.MultipartFile.fromPath('ic_image', icImage.path));
@@ -55,11 +60,13 @@ class EKYCService {
     if (result['success'] == true) {
       return LivenessVerificationResult.fromJson(result['data']);
     } else {
-      throw Exception(result['error'] ?? 'Liveness and face match verification failed');
+      return LivenessVerificationResult.failure(result['error'] ?? 'Verification failed');
     }
+  } catch (e) {
+    return LivenessVerificationResult.failure(e.toString());
   }
+ }
 }
-
 
 class IcTextResult {
   final String icNumber;
@@ -91,29 +98,6 @@ class FaceVerificationResult {
       similarity: (json['similarity'] as num).toDouble(),
       match: json['match'],
       savedFiles: json['saved_files'] ?? {},
-    );
-  }
-}
-
-class LivenessVerificationResult {
-  final double similarity;
-  final bool match;
-  final bool livenessPassed;
-  final int framesProcessed;
-
-  LivenessVerificationResult({
-    required this.similarity,
-    required this.match,
-    required this.livenessPassed,
-    required this.framesProcessed,
-  });
-
-  factory LivenessVerificationResult.fromJson(Map<String, dynamic> json) {
-    return LivenessVerificationResult(
-      similarity: (json['similarity'] as num).toDouble(),
-      match: json['match'],
-      livenessPassed: json['liveness_passed'],
-      framesProcessed: json['frames_processed'],
     );
   }
 }

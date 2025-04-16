@@ -15,6 +15,7 @@ class _UploadICPageState extends State<UploadICPage> {
   File? _idCardImage;
   String? _error;
   bool _isExtracting = false;
+  Map<String, dynamic>? _verificationResult;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -30,20 +31,42 @@ class _UploadICPageState extends State<UploadICPage> {
       _idCardImage = file;
       _error = null;
       _isExtracting = true;
+      _verificationResult = null;
     });
 
     try {
-      await EKYCService.verifyICStructure(file);
+      final result = await EKYCService.verifyICStructure(file);
+
+      setState(() {
+        _verificationResult = result['data'];
+      });
+
+      final type = _verificationResult?['detected_document_type'];
+      final orb = _verificationResult?['orb_match_score'];
+      final ssim = _verificationResult?['ssim_score'];
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Verified as $type\nORB Score: $orb, SSIM: $ssim",
+            style: const TextStyle(fontSize: 14),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       final errorMessage = e.toString().toLowerCase();
+
       final shouldReset = errorMessage.contains("no face") ||
           errorMessage.contains("small face") ||
           errorMessage.contains("structure") ||
-          errorMessage.contains("valid text");
+          errorMessage.contains("valid text") ||
+          errorMessage.contains("not match");
 
       if (shouldReset) {
         setState(() {
           _idCardImage = null;
+          _verificationResult = null;
         });
       }
 
@@ -73,7 +96,6 @@ class _UploadICPageState extends State<UploadICPage> {
               ),
               const SizedBox(height: 20),
 
-              // ID Preview Stack
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -121,21 +143,36 @@ class _UploadICPageState extends State<UploadICPage> {
                 ],
               ),
 
-
               const SizedBox(height: 20),
 
               if (_error != null) ...[
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    _error!.toLowerCase().contains("structure") || _error!.toLowerCase().contains("text")
-                        ? "❌ IC verification failed. Please retake or upload a clearer MyKad."
-                        : 'Error: $_error',
+                    _error!.toLowerCase().contains("face")
+                        ? "No face detected. Please retake with a clearer ID image."
+                        : _error!.toLowerCase().contains("text")
+                            ? "IC verification failed due to unreadable text."
+                            : _error!.toLowerCase().contains("match")
+                                ? "IC image doesn't match known layout. Please try again."
+                                : 'Error: $_error',
                     style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
                 ),
               ],
+
+              if (_verificationResult != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  "Verified as: ${_verificationResult?['detected_document_type']}",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 5),
+                Text("ORB: ${_verificationResult?['orb_match_score']}, SSIM: ${_verificationResult?['ssim_score']}"),
+              ],
+
+              const SizedBox(height: 20),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -168,7 +205,7 @@ class _UploadICPageState extends State<UploadICPage> {
               const SizedBox(height: 40),
 
               ElevatedButton(
-                onPressed: (_idCardImage != null && !_isExtracting && _error == null)
+                onPressed: (_idCardImage != null && !_isExtracting && _error == null && _verificationResult != null)
                     ? () => Navigator.pushNamed(
                           context,
                           '/liveness_check',
